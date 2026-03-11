@@ -1,14 +1,20 @@
 <template>
   <v-app>
-    <v-main>
-      <v-container>
-        <h1>Welcome to OphilliaHRMS</h1>
-        <v-btn color="primary">Get Started</v-btn>
-      </v-container>
-    </v-main>
+    <router-view />
+    <NotificationToast />
   </v-app>
 </template>
 
 <script setup lang="ts">
-// No logic needed for base setup
+import NotificationToast from '@/components/common/NotificationToast.vue'
 </script>
+
+<style>
+/* Global resets or utility overrides can go here */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
