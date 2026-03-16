@@ -50,10 +50,11 @@ apiClient.interceptors.response.use(
         }
 
         if (error.response) {
-            if (error.response.status === 401) {
-                // Token expired or invalid
-                // TODO: Trigger logout or token refresh flow
-                console.warn("401 Unauthorized - Need to refresh token or re-login")
+            if (error.response.status === 401 && window.location.pathname !== '/login') {
+                // Token expired, invalid, or blacklisted — clear session and redirect to login
+                localStorage.removeItem('access_token')
+                localStorage.removeItem('refresh_token')
+                window.location.href = '/login'
             }
 
             // If the backend sent a standardized error, use it

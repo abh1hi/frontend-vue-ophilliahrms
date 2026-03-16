@@ -11,20 +11,17 @@
       @update:options="onOptionsUpdate"
     >
       <template #actions>
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-account-plus"
-          @click="openCreateModal"
-          class="mr-4"
-        >
+        <v-btn color="primary" prepend-icon="mdi-account-plus" class="mr-4" @click="openCreateModal">
           Add Employee
         </v-btn>
       </template>
 
+      <!-- Name column -->
       <template #item.full_name="{ item }">
-        <div class="d-flex align-center">
-          <v-avatar color="grey-lighten-2" size="32" class="mr-3">
-            <span class="text-caption font-weight-bold">{{ getInitials(item) }}</span>
+        <div class="d-flex align-center" style="cursor:pointer" @click="openDrawer(item)">
+          <v-avatar :color="item.staff_photo_url ? undefined : 'blue-darken-2'" size="36" class="mr-3">
+            <v-img v-if="item.staff_photo_url" :src="item.staff_photo_url" />
+            <span v-else class="text-caption font-weight-bold text-white">{{ initials(item) }}</span>
           </v-avatar>
           <div>
             <div class="font-weight-medium">{{ item.first_name }} {{ item.last_name }}</div>
@@ -33,119 +30,62 @@
         </div>
       </template>
 
+      <!-- Status chip -->
       <template #item.employment_status="{ item }">
-        <v-chip
-          :color="getStatusColor(item.employment_status)"
-          size="small"
-          label
-          class="text-uppercase font-weight-bold"
-        >
+        <v-chip :color="statusColor(item.employment_status)" size="small" label class="text-uppercase font-weight-bold">
           {{ item.employment_status }}
         </v-chip>
       </template>
 
+      <!-- Row actions -->
       <template #item.actions="{ item }">
-        <v-btn icon="mdi-pencil" variant="text" color="blue" @click="openEditModal(item)"></v-btn>
-        <v-btn icon="mdi-delete" variant="text" color="red" @click="confirmDelete(item)"></v-btn>
+        <v-tooltip text="View" location="top">
+          <template #activator="{ props }">
+            <v-btn v-bind="props" icon="mdi-eye" variant="text" color="teal" @click="openDrawer(item)" />
+          </template>
+        </v-tooltip>
+        <v-tooltip text="Edit" location="top">
+          <template #activator="{ props }">
+            <v-btn v-bind="props" icon="mdi-pencil" variant="text" color="blue" @click="openEditModal(item)" />
+          </template>
+        </v-tooltip>
+        <v-tooltip text="Deactivate" location="top">
+          <template #activator="{ props }">
+            <v-btn v-bind="props" icon="mdi-account-off" variant="text" color="red" @click="confirmDeactivate(item)" />
+          </template>
+        </v-tooltip>
       </template>
     </DataTable>
 
-    <!-- Form Modal -->
-    <FormModal
-      v-model="modal.show"
-      :title="modal.isEdit ? 'Edit Employee' : 'Register New Employee'"
-      :submit-text="modal.isEdit ? 'Update' : 'Create'"
+    <!-- ── Create / Edit Form ──────────────────────────────────────────── -->
+    <EmployeeForm
+      v-model="formModal.show"
+      :is-edit="formModal.isEdit"
+      :initial-data="formModal.data"
       :loading="employeeStore.isLoading"
-      :initial-data="modal.data"
+      :departments="departmentStore.departments"
       @submit="handleFormSubmit"
-    >
-      <template #default="{ formData }">
-        <v-row>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="formData.first_name"
-              label="First Name"
-              required
-              :rules="[v => !!v || 'First name is required']"
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="formData.last_name"
-              label="Last Name"
-              required
-              :rules="[v => !!v || 'Last name is required']"
-            ></v-text-field>
-          </v-col>
-        </v-row>
+    />
 
-        <v-text-field
-          v-model="formData.email"
-          label="Email Address"
-          type="email"
-          required
-          :disabled="modal.isEdit"
-          :rules="[v => !!v || 'Email is required']"
-        ></v-text-field>
+    <!-- ── Employee Detail Drawer ──────────────────────────────────────── -->
+    <EmployeeDetailDrawer
+      v-model="drawerShow"
+      :employee="drawerEmployee"
+      @edit="onDrawerEdit"
+      @deactivate="onDrawerDeactivate"
+    />
 
-        <v-row>
-          <v-col cols="12" sm="6">
-            <v-select
-              v-model="formData.department_id"
-              :items="departmentStore.departments"
-              item-title="name"
-              item-value="id"
-              label="Department"
-            ></v-select>
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="formData.designation"
-              label="Designation"
-            ></v-text-field>
-          </v-col>
-        </v-row>
-
-        <v-row>
-          <v-col cols="12" sm="6" v-if="!modal.isEdit">
-            <v-text-field
-              v-model="formData.user_id"
-              label="Auth User ID (Temporary)"
-              required
-              :rules="[v => !!v || 'User ID is required']"
-              hint="In production, this would be auto-linked during user creation."
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="6" v-if="modal.isEdit">
-             <v-select
-              v-model="formData.employment_status"
-              :items="['active', 'inactive', 'terminated']"
-              label="Status"
-            ></v-select>
-          </v-col>
-          <v-col cols="12" :sm="modal.isEdit ? 6 : 12">
-            <v-text-field
-              v-model="formData.date_joined"
-              label="Date Joined"
-              type="date"
-              required
-            ></v-text-field>
-          </v-col>
-        </v-row>
-      </template>
-    </FormModal>
-
-    <!-- Delete Dialog -->
-    <v-dialog v-model="deleteDialog.show" max-width="450px">
+    <!-- ── Deactivate Confirm Dialog ───────────────────────────────────── -->
+    <v-dialog v-model="deactivateDialog.show" max-width="450px">
       <v-card rounded="lg" class="pa-4">
         <v-card-title class="text-h6 text-center">Deactivate Employee?</v-card-title>
         <v-card-text class="text-center">
-          Are you sure you want to deactivate <strong>{{ deleteDialog.item?.first_name }} {{ deleteDialog.item?.last_name }}</strong>?<br>
-          This will update their status to inactive.
+          Are you sure you want to deactivate
+          <strong>{{ deactivateDialog.item?.first_name }} {{ deactivateDialog.item?.last_name }}</strong>?
         </v-card-text>
-        <v-card-actions class="justify-center mt-4">
-          <v-btn variant="text" @click="deleteDialog.show = false">Cancel</v-btn>
-          <v-btn color="error" variant="elevated" @click="handleDeleteRequest">Deactivate</v-btn>
+        <v-card-actions class="justify-center mt-2">
+          <v-btn variant="text" @click="deactivateDialog.show = false">Cancel</v-btn>
+          <v-btn color="error" variant="elevated" @click="handleDeactivate">Deactivate</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -154,100 +94,130 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
-import DataTable from '@/components/common/DataTable.vue'
-import FormModal from '@/components/common/FormModal.vue'
-import { useEmployeeStore } from '@/store/employee.store'
+import DataTable            from '@/components/common/DataTable.vue'
+import EmployeeForm         from '@/components/common/EmployeeForm.vue'
+import EmployeeDetailDrawer from '@/components/employee/EmployeeDetailDrawer.vue'
+import { useEmployeeStore }   from '@/store/employee.store'
 import { useDepartmentStore } from '@/store/department.store'
+import { useAuthStore }       from '@/store/auth.store'
+import apiClient              from '@/utils/api-client'
+import type { Employee } from '@/types/employee.types'
 
-const employeeStore = useEmployeeStore()
+const employeeStore   = useEmployeeStore()
 const departmentStore = useDepartmentStore()
+const authStore       = useAuthStore()
 
+// ── Table headers ────────────────────────────────────────────────────────────
 const headers = [
-  { title: 'Employee', key: 'full_name', align: 'start' },
-  { title: 'Department', key: 'department_id' },
+  { title: 'Employee',    key: 'full_name',          align: 'start'  as const, sortable: false },
   { title: 'Designation', key: 'designation' },
-  { title: 'Status', key: 'employment_status' },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'end' },
+  { title: 'Department',  key: 'department_id' },
+  { title: 'Project',     key: 'project' },
+  { title: 'Status',      key: 'employment_status',  align: 'center' as const },
+  { title: 'Actions',     key: 'actions',            sortable: false, align: 'end' as const },
 ]
 
-const modal = reactive({
+// ── Form modal state ─────────────────────────────────────────────────────────
+const formModal = reactive({
   show: false,
   isEdit: false,
-  data: {} as any
+  data: {} as any,
 })
 
-const deleteDialog = reactive({
+// ── Detail drawer state ──────────────────────────────────────────────────────
+const drawerShow     = ref(false)
+const drawerEmployee = ref<Employee | null>(null)
+
+// ── Deactivate dialog state ──────────────────────────────────────────────────
+const deactivateDialog = reactive({
   show: false,
-  item: null as any
+  item: null as Employee | null,
 })
 
+// ── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(() => {
   employeeStore.fetchEmployees()
   departmentStore.fetchDepartments()
 })
 
-const onSearch = (query: string) => {
-  employeeStore.fetchEmployees({ search: query, page: 1 })
-}
+// ── Event handlers ───────────────────────────────────────────────────────────
+const onSearch = (q: string) => employeeStore.fetchEmployees({ search: q, page: 1 })
 
-const onOptionsUpdate = (options: any) => {
-  employeeStore.fetchEmployees({
-    page: options.page,
-    pageSize: options.itemsPerPage
-  })
-}
+const onOptionsUpdate = (opts: any) =>
+  employeeStore.fetchEmployees({ page: opts.page, pageSize: opts.itemsPerPage })
 
 const openCreateModal = () => {
-  modal.isEdit = false
-  modal.data = {
-    first_name: '',
-    last_name: '',
-    email: '',
-    date_joined: new Date().toISOString().substr(0, 10),
-    department_id: null,
-    designation: '',
-    user_id: ''
+  formModal.isEdit = false
+  formModal.data   = {
+    first_name: '', last_name: '', email: '',
+    date_joined:  new Date().toISOString().substring(0, 10),
+    department_id: null, designation: '', user_id: '',
+    _initial_password: '',
   }
-  modal.show = true
+  formModal.show = true
 }
 
-const openEditModal = (item: any) => {
-  modal.isEdit = true
-  modal.data = { ...item }
-  modal.show = true
+const openEditModal = (item: Employee) => {
+  formModal.isEdit = true
+  formModal.data   = { ...item }
+  formModal.show   = true
 }
 
-const handleFormSubmit = async (formData: any) => {
-  if (modal.isEdit) {
-    await employeeStore.updateEmployee(formData.id, formData)
+const openDrawer = (item: Employee) => {
+  drawerEmployee.value = item
+  drawerShow.value     = true
+}
+
+const onDrawerEdit = (emp: Employee) => {
+  drawerShow.value = false
+  openEditModal(emp)
+}
+
+const onDrawerDeactivate = (emp: Employee) => {
+  drawerShow.value = false
+  confirmDeactivate(emp)
+}
+
+const handleFormSubmit = async (data: any) => {
+  if (formModal.isEdit) {
+    await employeeStore.updateEmployee(data.id, data)
   } else {
-    await employeeStore.createEmployee(formData)
+    // Step 1: Create the auth account so we get a valid user UUID
+    const { _initial_password, ...empData } = data
+    const authUser: any = await apiClient.post('/auth/register', {
+      email: empData.email,
+      password: _initial_password,
+      role: empData.role || 'employee',
+      company_id: authStore.user?.company_id || undefined,
+    })
+    empData.user_id = authUser.id ?? authUser.data?.id
+
+    // Step 2: Create the employee profile linked to the new auth user
+    await employeeStore.createEmployee(empData)
   }
-  modal.show = false
+  formModal.show = false
 }
 
-const confirmDelete = (item: any) => {
-  deleteDialog.item = item
-  deleteDialog.show = true
+const confirmDeactivate = (item: Employee) => {
+  deactivateDialog.item = item
+  deactivateDialog.show = true
 }
 
-const handleDeleteRequest = async () => {
-  if (deleteDialog.item) {
-    await employeeStore.deleteEmployee(deleteDialog.item.id)
+const handleDeactivate = async () => {
+  if (deactivateDialog.item) {
+    await employeeStore.deleteEmployee(deactivateDialog.item.id)
   }
-  deleteDialog.show = false
+  deactivateDialog.show = false
 }
 
-const getInitials = (item: any) => {
-  return `${item.first_name?.[0] || ''}${item.last_name?.[0] || ''}`.toUpperCase()
-}
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const initials = (item: any) =>
+  `${item.first_name?.[0] || ''}${item.last_name?.[0] || ''}`.toUpperCase()
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'active': return 'success'
-    case 'inactive': return 'warning'
-    case 'terminated': return 'error'
-    default: return 'grey'
+const statusColor = (status: string) => {
+  const map: Record<string, string> = {
+    active: 'success', on_leave: 'info', inactive: 'warning', terminated: 'error',
   }
+  return map[status] ?? 'grey'
 }
 </script>

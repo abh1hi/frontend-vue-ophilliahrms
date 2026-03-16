@@ -11,6 +11,7 @@ interface AuthResponseData {
         name: string
         email: string
         role: string
+        company_id: string
     }
 }
 
@@ -75,9 +76,10 @@ export const useAuthStore = defineStore('auth', {
                 if (userData && userData.id) {
                     this.user = {
                         id: userData.id,
-                        name: userData.name || userData.email, // Backend doesn't have name right now, fallback to email
+                        name: userData.name || userData.email,
                         email: userData.email,
-                        role: userData.role
+                        role: userData.role,
+                        company_id: userData.company_id || '',
                     }
                 }
             } catch (err) {
@@ -85,7 +87,11 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
-        logout() {
+        async logout() {
+            // Blacklist the current JWT on the server before clearing local state
+            try {
+                await apiClient.post('/auth/logout')
+            } catch { /* ignore — still clean up client side */ }
             this.user = null
             this.accessToken = null
             this.refreshToken = null
