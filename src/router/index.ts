@@ -68,6 +68,12 @@ const router = createRouter({
                     name: 'classes',
                     component: () => import('@/pages/Classes.vue'),
                 },
+                {
+                    path: 'companies',
+                    name: 'companies',
+                    component: () => import('@/pages/Companies.vue'),
+                    meta: { requiresRole: 'super_admin' },
+                },
                 // Other modules would be nested here
             ],
         },
@@ -88,6 +94,9 @@ router.beforeEach((to, from, next) => {
         next({ name: 'login', query: { redirect: to.fullPath } })
     } else if (to.name === 'login' && authStore.isAuthenticated) {
         // Prevent logged-in users from seeing the login page
+        next({ name: 'dashboard' })
+    } else if (to.meta.requiresRole && authStore.userRole !== to.meta.requiresRole) {
+        // Role gate: redirect to dashboard if user lacks the required role
         next({ name: 'dashboard' })
     } else {
         next()

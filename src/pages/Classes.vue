@@ -4,6 +4,7 @@
       title="Classes & Academic Sections"
       :headers="headers"
       :items="studentStore.classes"
+      :total-items="studentStore.totalClasses"
       :loading="studentStore.isLoading"
       searchable
     >

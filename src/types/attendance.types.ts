@@ -8,12 +8,15 @@ export interface Attendance extends BaseModel {
     clock_in_lng?: number
     clock_out_lat?: number
     clock_out_lng?: number
+    clock_in_location_name?: string
+    clock_out_location_name?: string
     work_hours?: number
     overtime_hours: number
     status: string
     method: string
     notes?: string
     date: string
+    day_rating?: number
 }
 
 export interface ClockInRequest {

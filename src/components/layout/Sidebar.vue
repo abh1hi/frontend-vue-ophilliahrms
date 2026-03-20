@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth.store'
 
@@ -52,19 +52,26 @@ const authStore = useAuthStore()
 const drawer = ref(true)
 const rail = ref(false)
 
-const navigationItems = [
-  { title: 'Dashboard', icon: 'mdi-view-dashboard', value: 'dashboard', to: '/' },
-  { title: 'Employees', icon: 'mdi-account-group', value: 'employees', to: '/employees' },
-  { title: 'Departments', icon: 'mdi-office-building', value: 'departments', to: '/departments' },
-  { title: 'Attendance', icon: 'mdi-clock-check-outline', value: 'attendance', to: '/attendance' },
-  { title: 'Leave Management', icon: 'mdi-calendar-remove', value: 'leave', to: '/leave' },
-  { title: 'Payroll', icon: 'mdi-cash-multiple', value: 'payroll', to: '/payroll' },
-  { title: 'Notifications', icon: 'mdi-bell-outline', value: 'notifications', to: '/notifications' },
-  { title: 'Audit Logs', icon: 'mdi-clipboard-text-clock-outline', value: 'audit', to: '/audit-logs' },
-  { title: 'Students', icon: 'mdi-school', value: 'students', to: '/students' },
-  { title: 'Classes', icon: 'mdi-google-classroom', value: 'classes', to: '/classes' },
-  { title: 'Settings', icon: 'mdi-cog-outline', value: 'settings', to: '/settings' },
+const allNavigationItems = [
+  { title: 'Dashboard', icon: 'mdi-view-dashboard', value: 'dashboard', to: '/', roles: null },
+  { title: 'Employees', icon: 'mdi-account-group', value: 'employees', to: '/employees', roles: null },
+  { title: 'Departments', icon: 'mdi-office-building', value: 'departments', to: '/departments', roles: null },
+  { title: 'Attendance', icon: 'mdi-clock-check-outline', value: 'attendance', to: '/attendance', roles: null },
+  { title: 'Leave Management', icon: 'mdi-calendar-remove', value: 'leave', to: '/leave', roles: null },
+  { title: 'Payroll', icon: 'mdi-cash-multiple', value: 'payroll', to: '/payroll', roles: null },
+  { title: 'Notifications', icon: 'mdi-bell-outline', value: 'notifications', to: '/notifications', roles: null },
+  { title: 'Audit Logs', icon: 'mdi-clipboard-text-clock-outline', value: 'audit', to: '/audit-logs', roles: null },
+  { title: 'Students', icon: 'mdi-school', value: 'students', to: '/students', roles: null },
+  { title: 'Classes', icon: 'mdi-google-classroom', value: 'classes', to: '/classes', roles: null },
+  { title: 'Settings', icon: 'mdi-cog-outline', value: 'settings', to: '/settings', roles: null },
+  { title: 'Companies', icon: 'mdi-domain', value: 'companies', to: '/companies', roles: ['super_admin'] },
 ]
+
+const navigationItems = computed(() =>
+  allNavigationItems.filter(item =>
+    item.roles === null || (authStore.userRole && item.roles.includes(authStore.userRole))
+  )
+)
 
 const handleLogout = () => {
   authStore.logout()

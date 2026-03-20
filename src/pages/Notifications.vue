@@ -4,6 +4,7 @@
       title="Notification Logs"
       :headers="headers"
       :items="systemStore.notificationLogs"
+      :total-items="systemStore.totalNotificationLogs"
       :loading="systemStore.isLoading"
       searchable
     >
