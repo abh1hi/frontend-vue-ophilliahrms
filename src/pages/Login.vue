@@ -72,13 +72,27 @@ const credentials = reactive({
 
 const handleLogin = async () => {
   const { valid } = await form.value.validate()
-  
+
   if (!valid) return
 
   try {
     await authStore.login(credentials)
-    // Successful login pushes to dashboard
-    router.push('/')
+
+    // Backend-driven routing decision
+    const context = await authStore.fetchPostLoginContext()
+
+    switch (context.next_action) {
+      case 'CREATE_COMPANY':
+        router.push('/create-company')
+        return
+      case 'SELECT_COMPANY':
+        router.push('/select-company')
+        return
+      case 'ENTER_DASHBOARD':
+      default:
+        router.push('/')
+        return
+    }
   } catch (err) {
     // Error is handled and displayed via authStore.error state
     console.error("Login failed", err)

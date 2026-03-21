@@ -15,3 +15,12 @@ export interface CompanyListResponse {
     total: number
     companies: Company[]
 }
+
+export type NextAction = 'CREATE_COMPANY' | 'SELECT_COMPANY' | 'ENTER_DASHBOARD'
+
+export interface PostLoginContext {
+    role: string
+    companies?: Company[]
+    next_action: NextAction
+    selected_company?: string | null
+}

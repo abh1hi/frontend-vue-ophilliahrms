@@ -14,6 +14,18 @@ const router = createRouter({
             meta: { requiresAuth: false },
         },
         {
+            path: '/create-company',
+            name: 'create-company',
+            component: () => import('@/pages/CreateCompany.vue'),
+            meta: { requiresAuth: true, onboardingRoute: true },
+        },
+        {
+            path: '/select-company',
+            name: 'select-company',
+            component: () => import('@/pages/SelectCompany.vue'),
+            meta: { requiresAuth: true, onboardingRoute: true },
+        },
+        {
             path: '/',
             component: LayoutDashboard,
             meta: { requiresAuth: true },
@@ -86,21 +98,38 @@ const router = createRouter({
 })
 
 // Global Navigation Guard
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore()
 
     // Protect routes requiring authentication
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        next({ name: 'login', query: { redirect: to.fullPath } })
-    } else if (to.name === 'login' && authStore.isAuthenticated) {
-        // Prevent logged-in users from seeing the login page
-        next({ name: 'dashboard' })
-    } else if (to.meta.requiresRole && authStore.userRole !== to.meta.requiresRole) {
-        // Role gate: redirect to dashboard if user lacks the required role
-        next({ name: 'dashboard' })
-    } else {
-        next()
+        return next({ name: 'login', query: { redirect: to.fullPath } })
     }
+
+    if (to.name === 'login' && authStore.isAuthenticated) {
+        return next({ name: 'dashboard' })
+    }
+
+    // Guard onboarding routes: only allow if backend says so
+    if (to.meta.onboardingRoute && authStore.isAuthenticated) {
+        try {
+            const context = authStore.postLoginContext ?? await authStore.fetchPostLoginContext()
+            if (to.name === 'create-company' && context.next_action !== 'CREATE_COMPANY') {
+                return next({ name: 'dashboard' })
+            }
+            if (to.name === 'select-company' && context.next_action !== 'SELECT_COMPANY') {
+                return next({ name: 'dashboard' })
+            }
+        } catch {
+            return next({ name: 'dashboard' })
+        }
+    }
+
+    if (to.meta.requiresRole && authStore.userRole !== to.meta.requiresRole) {
+        return next({ name: 'dashboard' })
+    }
+
+    next()
 })
 
 export default router

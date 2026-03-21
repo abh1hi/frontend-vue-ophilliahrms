@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import apiClient from '@/utils/api-client'
 import type { ApiResponse } from '@/types/api.types'
+import type { PostLoginContext } from '@/types/company.types'
 
 // Mocking the specific Auth API Response according to the contract
 interface AuthResponseData {
@@ -20,6 +21,7 @@ export const useAuthStore = defineStore('auth', {
         user: null as AuthResponseData['user'] | null,
         accessToken: localStorage.getItem('access_token') || null,
         refreshToken: localStorage.getItem('refresh_token') || null,
+        postLoginContext: null as PostLoginContext | null,
         isLoading: false,
         error: null as string | null,
     }),
@@ -87,6 +89,23 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
+        async fetchPostLoginContext(): Promise<PostLoginContext> {
+            const response: any = await apiClient.get('/auth/post-login-context')
+            const context: PostLoginContext = response.data || response
+            this.postLoginContext = context
+            return context
+        },
+
+        async selectCompany(companyId: string) {
+            const response: any = await apiClient.post('/auth/select-company', { company_id: companyId })
+            const data = response.data || response
+            this.accessToken = data.access_token
+            this.refreshToken = data.refresh_token
+            localStorage.setItem('access_token', this.accessToken || '')
+            localStorage.setItem('refresh_token', this.refreshToken || '')
+            await this.fetchUser()
+        },
+
         async logout() {
             // Blacklist the current JWT on the server before clearing local state
             try {
@@ -95,6 +114,7 @@ export const useAuthStore = defineStore('auth', {
             this.user = null
             this.accessToken = null
             this.refreshToken = null
+            this.postLoginContext = null
             localStorage.removeItem('access_token')
             localStorage.removeItem('refresh_token')
         },
