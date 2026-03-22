@@ -101,6 +101,38 @@ export const useEmployeeStore = defineStore('employee', {
             } finally {
                 this.isLoading = false
             }
-        }
+        },
+
+        async bulkImport(file: File) {
+            const toast = useToastStore()
+            this.isLoading = true
+            try {
+                const formData = new FormData()
+                formData.append('file', file)
+                const response: any = await apiClient.post('/employees/bulk', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                })
+                const result = response.data || response
+                toast.show(`Bulk import completed: ${result.created || 0} created, ${result.errors?.length || 0} errors`, 'success')
+                await this.fetchEmployees()
+                return result
+            } catch (err: any) {
+                const msg = err.error?.message || 'Bulk import failed'
+                toast.show(msg, 'error')
+                throw err
+            } finally {
+                this.isLoading = false
+            }
+        },
+
+        async fetchMyProfile() {
+            try {
+                const response: any = await apiClient.get('/employees/me')
+                return response.data || response
+            } catch (err) {
+                console.error('Failed to fetch profile', err)
+                return null
+            }
+        },
     }
 })

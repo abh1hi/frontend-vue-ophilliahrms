@@ -1,2 +1,5 @@
-// Custom Vuetify SASS variables can be defined here
-// This file is required because it's referenced in vite.config.ts
+// Custom Vuetify SASS variables
+@use 'vuetify/settings' with (
+  $navigation-drawer-border-thin-width: 0,
+  $card-border-radius: 12px,
+);

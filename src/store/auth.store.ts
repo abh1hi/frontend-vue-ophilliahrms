@@ -118,5 +118,37 @@ export const useAuthStore = defineStore('auth', {
             localStorage.removeItem('access_token')
             localStorage.removeItem('refresh_token')
         },
+
+        async forgotPassword(email: string) {
+            const response: any = await apiClient.post('/auth/forgot-password', { email })
+            return response.data || response
+        },
+
+        async resetPassword(token: string, newPassword: string) {
+            const response: any = await apiClient.post('/auth/reset-password', {
+                token,
+                new_password: newPassword,
+            })
+            return response.data || response
+        },
+
+        async sendMagicLink(email: string) {
+            const response: any = await apiClient.post('/auth/magic-link', { email })
+            return response.data || response
+        },
+
+        async verifyMagicLink(token: string) {
+            const response: any = await apiClient.get(`/auth/verify-magic?token=${encodeURIComponent(token)}`)
+            const data = response.data || response
+
+            if (data.access_token) {
+                this.accessToken = data.access_token
+                this.refreshToken = data.refresh_token
+                localStorage.setItem('access_token', this.accessToken || '')
+                localStorage.setItem('refresh_token', this.refreshToken || '')
+                await this.fetchUser()
+            }
+            return data
+        },
     },
 })

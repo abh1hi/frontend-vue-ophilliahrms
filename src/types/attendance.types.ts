@@ -85,3 +85,84 @@ export interface PolicyCreate {
     work_start_time?: string
     work_hours_per_day?: number
 }
+
+export interface PolicyUpdate {
+    department_id?: string
+    employee_id?: string
+    method?: string
+    geofence_id?: string
+    work_start_time?: string
+    work_hours_per_day?: number
+}
+
+export interface GeofenceUpdate {
+    name?: string
+    latitude?: number
+    longitude?: number
+    radius_meters?: number
+}
+
+export interface AttendanceTask {
+    id: string
+    attendance_id?: string
+    employee_id?: string
+    title: string
+    description?: string
+    status: string
+    estimated_finish_time?: string
+    completion_notes?: string
+    actual_expenses?: number
+    created_at: string
+    updated_at: string
+}
+
+export interface TaskCreate {
+    title: string
+    description?: string
+    estimated_finish_time?: string
+}
+
+export interface TaskUpdate {
+    title?: string
+    description?: string
+    status?: string
+    estimated_finish_time?: string
+}
+
+export interface TaskComplete {
+    completion_notes?: string
+    actual_expenses?: number
+    status?: string
+}
+
+export interface TaskAssign {
+    employee_id: string
+    title: string
+    description?: string
+    estimated_finish_time?: string
+}
+
+export interface SchoolModeEntry {
+    employee_id: string
+    date: string
+    status: string
+    notes?: string
+}
+
+export interface BulkSchoolModeRequest {
+    entries: SchoolModeEntry[]
+}
+
+export interface ProductivityReport {
+    employee_id: string
+    employee_name?: string
+    total_present_days: number
+    total_absent_days: number
+    total_late_days: number
+    total_half_days: number
+    total_work_hours: number
+    total_overtime_hours: number
+    avg_work_hours: number
+    task_completion_rate: number
+    avg_day_rating: number
+}

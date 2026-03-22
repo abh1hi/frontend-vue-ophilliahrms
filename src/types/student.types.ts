@@ -22,6 +22,21 @@ export interface Student extends BaseModel {
     status: 'active' | 'inactive' | 'withdrawn' | 'graduated'
 }
 
+export interface StudentUpdate {
+    first_name?: string
+    last_name?: string
+    date_of_birth?: string
+    gender?: 'male' | 'female' | 'other'
+    email?: string
+    phone?: string
+    address?: string
+    class_id?: string
+}
+
+export interface StudentStatusChange {
+    status: 'active' | 'inactive' | 'withdrawn' | 'graduated'
+}
+
 export interface Guardian extends BaseModel {
     student_id: string
     first_name: string
@@ -30,6 +45,41 @@ export interface Guardian extends BaseModel {
     phone: string
     email?: string
     is_primary: boolean
+}
+
+export interface GuardianCreate {
+    student_id: string
+    first_name: string
+    last_name: string
+    relationship: 'father' | 'mother' | 'other'
+    phone: string
+    email?: string
+    is_primary?: boolean
+}
+
+export interface GuardianUpdate {
+    first_name?: string
+    last_name?: string
+    relationship?: 'father' | 'mother' | 'other'
+    phone?: string
+    email?: string
+    is_primary?: boolean
+}
+
+export interface ClassCreate {
+    name: string
+    grade_level: number
+    section: string
+    academic_year: string
+    capacity: number
+}
+
+export interface ClassUpdate {
+    name?: string
+    grade_level?: number
+    section?: string
+    academic_year?: string
+    capacity?: number
 }
 
 export interface StudentListResponse {

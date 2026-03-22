@@ -1,0 +1,1 @@
+.calendar-grid[data-v-84f692c2]{display:grid;grid-template-columns:repeat(7,1fr)}.calendar-header[data-v-84f692c2]{border-bottom:1px solid rgba(128,128,128,.2)}.calendar-cell[data-v-84f692c2]{min-height:72px;border-bottom:1px solid rgba(128,128,128,.1);border-right:1px solid rgba(128,128,128,.1)}.calendar-cell[data-v-84f692c2]:nth-child(7n){border-right:none}

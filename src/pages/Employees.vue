@@ -11,6 +11,9 @@
       @update:options="onOptionsUpdate"
     >
       <template #actions>
+        <v-btn color="secondary" variant="tonal" prepend-icon="mdi-upload" class="mr-2 text-none" @click="showBulkImport = true">
+          Bulk Import
+        </v-btn>
         <v-btn color="primary" prepend-icon="mdi-account-plus" class="mr-4" @click="openCreateModal">
           Add Employee
         </v-btn>
@@ -89,6 +92,8 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <BulkImportDialog v-model="showBulkImport" />
   </v-container>
 </template>
 
@@ -97,12 +102,14 @@ import { ref, onMounted, reactive } from 'vue'
 import DataTable            from '@/components/common/DataTable.vue'
 import EmployeeForm         from '@/components/common/EmployeeForm.vue'
 import EmployeeDetailDrawer from '@/components/employee/EmployeeDetailDrawer.vue'
+import BulkImportDialog     from '@/components/employee/BulkImportDialog.vue'
 import { useEmployeeStore }   from '@/store/employee.store'
 import { useDepartmentStore } from '@/store/department.store'
 import { useAuthStore }       from '@/store/auth.store'
 import apiClient              from '@/utils/api-client'
 import type { Employee } from '@/types/employee.types'
 
+const showBulkImport  = ref(false)
 const employeeStore   = useEmployeeStore()
 const departmentStore = useDepartmentStore()
 const authStore       = useAuthStore()

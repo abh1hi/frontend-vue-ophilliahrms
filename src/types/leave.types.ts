@@ -36,3 +36,45 @@ export interface Holiday extends BaseModel {
     description?: string
     is_recurring: boolean
 }
+
+export interface LeaveTypeCreate {
+    name: string
+    description?: string
+    days_allowed: number
+    requires_approval?: boolean
+}
+
+export interface LeaveTypeUpdate {
+    name?: string
+    description?: string
+    days_allowed?: number
+    requires_approval?: boolean
+}
+
+export interface LeaveBalanceCreate {
+    employee_id: string
+    leave_type_id: string
+    total_days: number
+    year?: number
+}
+
+export interface BulkLeaveBalanceRequest {
+    balances: LeaveBalanceCreate[]
+}
+
+export interface HolidayCreate {
+    name: string
+    date: string
+    description?: string
+    is_recurring?: boolean
+}
+
+export interface CalendarDate {
+    date: string
+    employees: Array<{
+        employee_id: string
+        employee_name?: string
+        leave_type: string
+    }>
+    count: number
+}

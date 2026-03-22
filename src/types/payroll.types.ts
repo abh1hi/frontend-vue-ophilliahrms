@@ -47,3 +47,33 @@ export interface Payslip extends BaseModel {
     period_start: string
     period_end: string
 }
+
+export interface SalaryStructureCreate {
+    name: string
+    description?: string
+    basic_pct: number
+    hra_pct: number
+    allowances_pct: number
+    pf_pct: number
+    esi_pct: number
+    professional_tax: number
+}
+
+export interface SalaryStructureUpdate {
+    name?: string
+    description?: string
+    basic_pct?: number
+    hra_pct?: number
+    allowances_pct?: number
+    pf_pct?: number
+    esi_pct?: number
+    professional_tax?: number
+}
+
+export interface SalaryAssign {
+    employee_id: string
+    salary_structure_id: string
+    ctc: number
+    effective_from: string
+    effective_to?: string
+}

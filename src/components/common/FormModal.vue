@@ -17,7 +17,7 @@
 
       <v-divider></v-divider>
 
-      <v-card-actions class="pa-4 bg-grey-lighten-4">
+      <v-card-actions class="pa-4 bg-surface-variant">
         <v-spacer></v-spacer>
         <v-btn
           variant="text"

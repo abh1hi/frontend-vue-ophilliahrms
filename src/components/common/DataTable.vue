@@ -1,7 +1,7 @@
 <template>
   <v-card class="elevation-2" rounded="lg">
-    <v-card-title class="d-flex align-center bg-grey-lighten-4 py-3">
-      <span class="text-h6 font-weight-bold text-grey-darken-3">{{ title }}</span>
+    <v-card-title class="d-flex align-center flex-wrap bg-surface-variant py-3">
+      <span class="text-h6 font-weight-bold">{{ title }}</span>
       <v-spacer></v-spacer>
       
       <!-- Slot for extra actions (e.g., Create Button) -->
