@@ -7,6 +7,9 @@
       :total-items="studentStore.totalStudents"
       :loading="studentStore.isLoading"
       searchable
+      empty-icon="mdi-school-outline"
+      empty-title="No students enrolled"
+      empty-subtitle="Enroll your first student to begin managing academic records."
       @search="onSearch"
       @update:options="onOptionsUpdate"
     >

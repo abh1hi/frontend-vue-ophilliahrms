@@ -61,9 +61,11 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCompanyStore } from '@/store/company.store'
+import { useAuthStore } from '@/store/auth.store'
 
 const router = useRouter()
 const companyStore = useCompanyStore()
+const authStore = useAuthStore()
 const formRef = ref()
 const isSubmitting = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -81,10 +83,12 @@ const handleSubmit = async () => {
   errorMessage.value = null
 
   try {
-    await companyStore.createCompany({
+    const company = await companyStore.createCompany({
       name: companyForm.name,
       domain: companyForm.domain || undefined,
     })
+    // Select the newly created company to get company-scoped tokens
+    await authStore.selectCompany(company.id)
     router.push('/')
   } catch (err: any) {
     errorMessage.value = err.error?.message || 'Failed to create company'

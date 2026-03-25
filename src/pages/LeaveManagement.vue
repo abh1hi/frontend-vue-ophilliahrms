@@ -36,6 +36,9 @@
           :items="leaveStore.leaveRequests"
           :total-items="leaveStore.totalRequests"
           :loading="leaveStore.isLoading"
+          empty-icon="mdi-calendar-remove-outline"
+          empty-title="No leave requests"
+          empty-subtitle="Leave requests from your team will appear here."
           @update:options="onOptionsUpdate"
         >
           <template #item.employee_id="{ item }">{{ getEmployeeName(item.employee_id) }}</template>

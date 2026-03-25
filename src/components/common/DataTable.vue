@@ -31,6 +31,19 @@
       @update:options="onOptionsUpdate"
       class="elevation-0"
     >
+      <!-- Default empty state (overridable via no-data slot) -->
+      <template v-if="!$slots['no-data']" v-slot:no-data>
+        <EmptyState
+          :icon="emptyIcon"
+          :title="emptyTitle"
+          :subtitle="emptySubtitle"
+        >
+          <template #action>
+            <slot name="empty-action"></slot>
+          </template>
+        </EmptyState>
+      </template>
+
       <!-- Pass down slots to v-data-table-server to allow custom column rendering -->
       <template v-for="(_, slotName) in $slots" v-slot:[slotName]="slotProps">
         <slot :name="slotName" v-bind="slotProps || {}"></slot>
@@ -41,6 +54,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import EmptyState from './EmptyState.vue'
 
 const props = defineProps<{
   title: string
@@ -51,6 +65,9 @@ const props = defineProps<{
   searchable?: boolean
   initialPage?: number
   initialItemsPerPage?: number
+  emptyIcon?: string
+  emptyTitle?: string
+  emptySubtitle?: string
 }>()
 
 const emit = defineEmits<{

@@ -7,6 +7,9 @@
       :total-items="employeeStore.totalEmployees"
       :loading="employeeStore.isLoading"
       searchable
+      empty-icon="mdi-account-group-outline"
+      empty-title="No employees yet"
+      empty-subtitle="Add your first employee to get started with workforce management."
       @search="onSearch"
       @update:options="onOptionsUpdate"
     >

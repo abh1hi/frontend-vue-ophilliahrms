@@ -7,6 +7,9 @@
       :total-items="departmentStore.totalDepartments"
       :loading="departmentStore.isLoading"
       searchable
+      empty-icon="mdi-office-building-outline"
+      empty-title="No departments yet"
+      empty-subtitle="Create departments to organize your team structure."
       @search="onSearch"
     >
       <template #actions>

@@ -1,12 +1,35 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth.store'
+import apiClient from '@/utils/api-client'
 
 // Layouts
 import LayoutDashboard from '@/layouts/DashboardLayout.vue'
 
+// Cache system status to avoid repeated API calls per navigation
+let _systemInitialized: boolean | null = null
+
+async function isSystemInitialized(): Promise<boolean> {
+    if (_systemInitialized !== null) return _systemInitialized
+    try {
+        const response: any = await apiClient.get('/auth/system-status')
+        const data = response.data || response
+        _systemInitialized = data.initialized
+        return _systemInitialized!
+    } catch {
+        // If we can't reach the backend, assume initialized to avoid blocking
+        return true
+    }
+}
+
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
+        {
+            path: '/setup',
+            name: 'setup',
+            component: () => import('@/pages/Setup.vue'),
+            meta: { requiresAuth: false, setupRoute: true },
+        },
         {
             path: '/login',
             name: 'login',
@@ -30,6 +53,18 @@ const router = createRouter({
             name: 'verify-magic',
             component: () => import('@/pages/VerifyMagicLink.vue'),
             meta: { requiresAuth: false },
+        },
+        {
+            path: '/accept-invite',
+            name: 'accept-invite',
+            component: () => import('@/pages/AcceptInvite.vue'),
+            meta: { requiresAuth: false },
+        },
+        {
+            path: '/onboarding',
+            name: 'onboarding',
+            component: () => import('@/pages/onboarding/OnboardingLayout.vue'),
+            meta: { requiresAuth: true },
         },
         {
             path: '/create-company',
@@ -142,7 +177,7 @@ const router = createRouter({
                     path: 'users',
                     name: 'users',
                     component: () => import('@/pages/UserManagement.vue'),
-                    meta: { title: 'User Management', allowedRoles: ['super_admin'] },
+                    meta: { title: 'User Management', allowedRoles: ['super_admin', 'admin'] },
                 },
                 {
                     path: 'notification-preferences',
@@ -170,7 +205,23 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore()
 
-    // Protect routes requiring authentication
+    // 1. System initialization check — redirect to /setup if not initialized
+    if (!to.meta.setupRoute) {
+        const initialized = await isSystemInitialized()
+        if (!initialized) {
+            return next({ name: 'setup' })
+        }
+    }
+
+    // If system IS initialized and user navigates to /setup, redirect away
+    if (to.meta.setupRoute) {
+        const initialized = await isSystemInitialized()
+        if (initialized) {
+            return next({ name: 'login' })
+        }
+    }
+
+    // 2. Protect routes requiring authentication
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
         return next({ name: 'login', query: { redirect: to.fullPath } })
     }
@@ -179,7 +230,7 @@ router.beforeEach(async (to, from, next) => {
         return next({ name: 'dashboard' })
     }
 
-    // Guard onboarding routes: only allow if backend says so
+    // 3. Guard onboarding routes: only allow if backend says so
     if (to.meta.onboardingRoute && authStore.isAuthenticated) {
         try {
             const context = authStore.postLoginContext ?? await authStore.fetchPostLoginContext()
@@ -194,7 +245,7 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    // Role-based access control
+    // 4. Role-based access control
     const allowedRoles = to.meta.allowedRoles as string[] | undefined
     if (allowedRoles && authStore.userRole && !allowedRoles.includes(authStore.userRole)) {
         return next({ name: 'dashboard' })
@@ -202,5 +253,10 @@ router.beforeEach(async (to, from, next) => {
 
     next()
 })
+
+// Reset cached system status after bootstrap completes (called from Setup.vue)
+export function resetSystemStatusCache() {
+    _systemInitialized = null
+}
 
 export default router

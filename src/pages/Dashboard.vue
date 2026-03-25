@@ -16,6 +16,9 @@
       </div>
     </div>
 
+    <!-- Onboarding Checklist -->
+    <OnboardingChecklist />
+
     <!-- KPI Cards -->
     <v-row>
       <v-col cols="12" sm="6" lg="3">
@@ -283,6 +286,7 @@ import { useLeaveStore } from '@/store/leave.store'
 import { useSystemStore } from '@/store/system.store'
 import { useStudentStore } from '@/store/student.store'
 import { useServiceHealth } from '@/composables/useServiceHealth'
+import OnboardingChecklist from '@/components/common/OnboardingChecklist.vue'
 
 const authStore = useAuthStore()
 const employeeStore = useEmployeeStore()
