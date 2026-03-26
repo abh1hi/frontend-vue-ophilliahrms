@@ -120,6 +120,12 @@ const router = createRouter({
                     meta: { title: 'Attendance Policies', allowedRoles: ['super_admin', 'admin', 'hr'] },
                 },
                 {
+                    path: 'attendance/dashboard',
+                    name: 'attendance-dashboard',
+                    component: () => import('@/pages/AttendanceDashboard.vue'),
+                    meta: { title: 'Attendance Dashboard', allowedRoles: ['super_admin', 'admin'] },
+                },
+                {
                     path: 'reports/productivity',
                     name: 'productivity-reports',
                     component: () => import('@/pages/ProductivityReports.vue'),
@@ -204,6 +210,11 @@ const router = createRouter({
 // Global Navigation Guard
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore()
+
+    // 0. Restore user state after page reload (token in localStorage but user not in Pinia memory)
+    if (authStore.accessToken && !authStore.user) {
+        await authStore.fetchUser()
+    }
 
     // 1. System initialization check — redirect to /setup if not initialized
     if (!to.meta.setupRoute) {

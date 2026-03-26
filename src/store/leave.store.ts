@@ -36,9 +36,10 @@ export const useLeaveStore = defineStore('leave', {
             }
         },
 
-        async fetchLeaveBalances() {
+        async fetchLeaveBalances(year?: number) {
             try {
-                const response: any = await apiClient.get('/leave-balances')
+                const params = year ? { year } : { year: new Date().getFullYear() }
+                const response: any = await apiClient.get('/leave-balances/', { params })
                 this.leaveBalances = response.data || response
             } catch (err) {
                 console.error('Failed to fetch leave balances', err)
@@ -81,7 +82,7 @@ export const useLeaveStore = defineStore('leave', {
             const toast = useToastStore()
             this.isLoading = true
             try {
-                const response: any = await apiClient.patch(`/leave-requests/${id}`, {
+                const response: any = await apiClient.put(`/leave-requests/${id}/status`, {
                     status,
                     manager_notes: managerNotes
                 })

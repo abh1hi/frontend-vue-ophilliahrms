@@ -113,8 +113,9 @@ const headers = [
   { title: 'Year', key: 'year' },
 ]
 
+// Leave service uses user_id (JWT sub) as employee_id, not the employee profile id
 const employeeOptions = computed(() =>
-  employeeStore.employees.map((e: any) => ({ title: `${e.first_name} ${e.last_name}`, value: e.id }))
+  employeeStore.employees.map((e: any) => ({ title: `${e.first_name} ${e.last_name}`, value: e.user_id }))
 )
 
 const leaveTypeOptions = computed(() =>
@@ -122,7 +123,7 @@ const leaveTypeOptions = computed(() =>
 )
 
 const getEmployeeName = (id: string) => {
-  const emp = employeeStore.employees.find((e: any) => e.id === id)
+  const emp = employeeStore.employees.find((e: any) => e.user_id === id || e.id === id)
   return emp ? `${emp.first_name} ${emp.last_name}` : id
 }
 
@@ -155,11 +156,11 @@ const handleAllocate = async (formData: any) => {
 
 const handleBulkAllocate = async () => {
   await leaveStore.bulkCreateLeaveBalances({
-    balances: bulkModal.employeeIds.map(eid => ({
+    leave_type_id: bulkModal.leaveTypeId,
+    year: bulkModal.year,
+    items: bulkModal.employeeIds.map(eid => ({
       employee_id: eid,
-      leave_type_id: bulkModal.leaveTypeId,
       total_days: bulkModal.totalDays,
-      year: bulkModal.year,
     })),
   })
   bulkModal.show = false

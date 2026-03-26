@@ -58,8 +58,16 @@ export interface LeaveBalanceCreate {
     year?: number
 }
 
+// Backend bulk schema: { leave_type_id, year, items: [{employee_id, total_days}] }
+export interface BulkLeaveBalanceItem {
+    employee_id: string
+    total_days: number
+}
+
 export interface BulkLeaveBalanceRequest {
-    balances: LeaveBalanceCreate[]
+    leave_type_id: string
+    year: number
+    items: BulkLeaveBalanceItem[]
 }
 
 export interface HolidayCreate {

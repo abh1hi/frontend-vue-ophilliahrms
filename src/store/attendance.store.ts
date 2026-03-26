@@ -21,6 +21,12 @@ import type {
     ProductivityReport,
     SchoolModeEntry,
     BulkSchoolModeRequest,
+    AdminKPI,
+    AttendanceTrendItem,
+    DailyStatusBreakdown,
+    PerformersResponse,
+    TaskTemplate,
+    TaskTemplateCreate,
 } from '@/types/api.types'
 import { useToastStore } from './toast.store'
 
@@ -33,6 +39,13 @@ export const useAttendanceStore = defineStore('attendance', {
         geofences: [] as Geofence[],
         policies: [] as AttendancePolicy[],
         productivityReport: [] as ProductivityReport[],
+        templates: [] as TaskTemplate[],
+        // Admin Dashboard KPI state
+        adminKPI: null as AdminKPI | null,
+        attendanceTrend: [] as AttendanceTrendItem[],
+        statusBreakdown: null as DailyStatusBreakdown | null,
+        performers: null as PerformersResponse | null,
+        alerts: null as any,
         isLoading: false,
         error: null as string | null,
         pagination: {
@@ -377,6 +390,126 @@ export const useAttendanceStore = defineStore('attendance', {
                 return []
             } finally {
                 this.isLoading = false
+            }
+        },
+
+        // ── Admin Dashboard KPI ──
+        async fetchAdminKPI(targetDate?: string) {
+            try {
+                const params = targetDate ? { target_date: targetDate } : {}
+                const response: any = await apiClient.get('/attendance/dashboard/kpi', { params })
+                this.adminKPI = response.data || response
+                return this.adminKPI
+            } catch (err: any) {
+                console.error('Failed to fetch admin KPI', err)
+                return null
+            }
+        },
+
+        async fetchAttendanceTrend(days = 7) {
+            try {
+                const response: any = await apiClient.get('/attendance/dashboard/trend', { params: { days } })
+                const data = response.data || response
+                this.attendanceTrend = data.items || data || []
+                return this.attendanceTrend
+            } catch (err: any) {
+                console.error('Failed to fetch attendance trend', err)
+                return []
+            }
+        },
+
+        async fetchStatusBreakdown(targetDate?: string) {
+            try {
+                const params = targetDate ? { target_date: targetDate } : {}
+                const response: any = await apiClient.get('/attendance/dashboard/status-breakdown', { params })
+                this.statusBreakdown = response.data || response
+                return this.statusBreakdown
+            } catch (err: any) {
+                console.error('Failed to fetch status breakdown', err)
+                return null
+            }
+        },
+
+        async fetchPerformers(year: number, month: number, limit = 5) {
+            try {
+                const response: any = await apiClient.get('/attendance/dashboard/performers', {
+                    params: { year, month, limit }
+                })
+                this.performers = response.data || response
+                return this.performers
+            } catch (err: any) {
+                console.error('Failed to fetch performers', err)
+                return null
+            }
+        },
+
+        async fetchAlerts() {
+            try {
+                const response: any = await apiClient.get('/attendance/alerts')
+                this.alerts = response.data || response
+                return this.alerts
+            } catch (err: any) {
+                console.error('Failed to fetch alerts', err)
+                return null
+            }
+        },
+
+        async exportCSV(params: Record<string, any> = {}) {
+            const toast = useToastStore()
+            try {
+                const response = await apiClient.get('/attendance/export/csv', {
+                    params,
+                    responseType: 'blob' as any
+                })
+                const blob = new Blob([response as any], { type: 'text/csv' })
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = 'attendance_export.csv'
+                a.click()
+                window.URL.revokeObjectURL(url)
+                toast.show('CSV exported successfully', 'success')
+            } catch (err: any) {
+                toast.show(err.error?.message || 'Failed to export CSV', 'error')
+            }
+        },
+
+        // ── Task Templates ──
+        async fetchTemplates() {
+            try {
+                const response: any = await apiClient.get('/attendance/templates')
+                const data = response.data || response
+                this.templates = Array.isArray(data) ? data : data.templates || []
+                return this.templates
+            } catch (err: any) {
+                console.error('Failed to fetch templates', err)
+                return []
+            }
+        },
+
+        async createTemplate(data: TaskTemplateCreate) {
+            const toast = useToastStore()
+            try {
+                const response: any = await apiClient.post('/attendance/templates', data)
+                const template: TaskTemplate = response.data || response
+                this.templates.unshift(template)
+                toast.show('Template created', 'success')
+                return template
+            } catch (err: any) {
+                toast.show(err.error?.message || 'Failed to create template', 'error')
+                throw err
+            }
+        },
+
+        async deleteTemplate(id: string) {
+            const toast = useToastStore()
+            try {
+                await apiClient.delete(`/attendance/templates/${id}`)
+                this.templates = this.templates.filter(t => t.id !== id)
+                toast.show('Template deleted', 'success')
+            } catch (err: any) {
+                toast.show(err.error?.message || 'Failed to delete template', 'error')
+                throw err
             }
         },
     }

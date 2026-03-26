@@ -35,6 +35,14 @@
         {{ item.work_hours_per_day }}h
       </template>
 
+      <template #item.max_shifts_per_day="{ item }">
+        {{ item.max_shifts_per_day ?? 1 }}
+      </template>
+
+      <template #item.auto_close_time="{ item }">
+        {{ item.auto_close_time || '23:59' }}
+      </template>
+
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" color="primary" @click="openEdit(item)">
           <v-icon size="18">mdi-pencil-outline</v-icon>
@@ -60,6 +68,14 @@
         <v-select v-model="formData.geofence_id" label="Geofence (optional)" :items="geofenceOptions" clearable />
         <v-text-field v-model="formData.work_start_time" label="Work Start Time" type="time" />
         <v-text-field v-model.number="formData.work_hours_per_day" label="Work Hours Per Day" type="number" :rules="[v => v > 0 || 'Must be > 0']" />
+
+        <v-divider class="my-3" />
+        <p class="text-subtitle-2 text-medium-emphasis mb-2">Shift & Schedule Settings</p>
+
+        <v-text-field v-model.number="formData.max_shifts_per_day" label="Max Shifts Per Day" type="number" min="1" max="5" hint="How many shifts an employee can work in one day (default: 1)" persistent-hint />
+        <v-text-field v-model="formData.auto_close_time" label="Auto Close Time" type="time" hint="Auto punch-out time if employee forgets (default: 23:59)" persistent-hint />
+        <v-text-field v-model.number="formData.task_planning_grace_minutes" label="Task Planning Grace (minutes)" type="number" min="0" hint="Minutes after punch-in to add tasks (default: 30)" persistent-hint />
+        <v-select v-model="formData.allow_night_shift" label="Allow Night Shift" :items="[{ title: 'Yes', value: 'true' }, { title: 'No', value: 'false' }]" hint="Allow clock-in/out across midnight" persistent-hint />
       </template>
     </FormModal>
 
@@ -96,23 +112,21 @@ const headers = [
   { title: 'Employee', key: 'employee_id' },
   { title: 'Start Time', key: 'work_start_time' },
   { title: 'Hours/Day', key: 'work_hours_per_day' },
+  { title: 'Max Shifts', key: 'max_shifts_per_day' },
+  { title: 'Auto Close', key: 'auto_close_time' },
   { title: 'Actions', key: 'actions', sortable: false, align: 'center' as const },
 ]
 
 const methodColors: Record<string, string> = {
-  gps: 'blue',
-  geofence: 'teal',
   manual: 'orange',
-  biometric: 'purple',
-  wifi: 'indigo',
+  geofence: 'teal',
+  both: 'blue',
 }
 
 const methodOptions = [
-  { title: 'GPS', value: 'gps' },
-  { title: 'Geofence', value: 'geofence' },
   { title: 'Manual', value: 'manual' },
-  { title: 'Biometric', value: 'biometric' },
-  { title: 'WiFi', value: 'wifi' },
+  { title: 'Geofence', value: 'geofence' },
+  { title: 'Both (Manual + Geofence)', value: 'both' },
 ]
 
 const departmentOptions = computed(() =>
@@ -144,7 +158,12 @@ const deleteDialog = reactive({ show: false, item: null as AttendancePolicy | nu
 
 const openCreate = () => {
   modal.isEdit = false
-  modal.data = { method: 'gps', department_id: null, employee_id: null, geofence_id: null, work_start_time: '09:00', work_hours_per_day: 8 }
+  modal.data = {
+    method: 'manual', department_id: null, employee_id: null, geofence_id: null,
+    work_start_time: '09:00', work_hours_per_day: 8,
+    max_shifts_per_day: 1, auto_close_time: '23:59',
+    task_planning_grace_minutes: 30, allow_night_shift: 'false',
+  }
   modal.show = true
 }
 
@@ -158,6 +177,10 @@ const openEdit = (policy: AttendancePolicy) => {
     geofence_id: policy.geofence_id || null,
     work_start_time: policy.work_start_time || '',
     work_hours_per_day: policy.work_hours_per_day,
+    max_shifts_per_day: policy.max_shifts_per_day ?? 1,
+    auto_close_time: policy.auto_close_time || '23:59',
+    task_planning_grace_minutes: policy.task_planning_grace_minutes ?? 30,
+    allow_night_shift: policy.allow_night_shift || 'false',
   }
   modal.show = true
 }
