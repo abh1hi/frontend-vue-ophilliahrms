@@ -16,8 +16,10 @@ async function isSystemInitialized(): Promise<boolean> {
         _systemInitialized = data.initialized
         return _systemInitialized!
     } catch {
-        // If we can't reach the backend, assume initialized to avoid blocking
-        return true
+        // If we can't reach the backend:
+        // - No stored token → fresh system, assume NOT initialized → redirect to /setup
+        // - Has stored token → established user with backend down → assume initialized → show login
+        return !!localStorage.getItem('access_token')
     }
 }
 

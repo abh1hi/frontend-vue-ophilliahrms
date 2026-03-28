@@ -134,7 +134,7 @@ const departmentOptions = computed(() =>
 )
 
 const employeeOptions = computed(() =>
-  employeeStore.employees.map((e: any) => ({ title: `${e.first_name} ${e.last_name}`, value: e.id }))
+  employeeStore.employees.map((e: any) => ({ title: `${e.first_name} ${e.last_name}`, value: e.user_id }))
 )
 
 const geofenceOptions = computed(() =>
@@ -149,7 +149,7 @@ const getDepartmentName = (id: string | undefined) => {
 
 const getEmployeeName = (id: string | undefined) => {
   if (!id) return '(All)'
-  const emp = employeeStore.employees.find((e: any) => e.id === id)
+  const emp = employeeStore.employees.find((e: any) => e.user_id === id)
   return emp ? `${emp.first_name} ${emp.last_name}` : id
 }
 
