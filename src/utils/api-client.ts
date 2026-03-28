@@ -20,8 +20,13 @@ apiClient.interceptors.request.use(
         }
 
         // Add default Correlation ID for distributed tracing
+        // crypto.randomUUID() requires a secure context (HTTPS) in Safari/Firefox.
+        // Fall back to a simple random ID when unavailable (e.g. HTTP on mobile).
         if (config.headers && !config.headers['X-Correlation-ID']) {
-            config.headers['X-Correlation-ID'] = crypto.randomUUID()
+            const uuid = typeof crypto?.randomUUID === 'function'
+                ? crypto.randomUUID()
+                : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+            config.headers['X-Correlation-ID'] = uuid
         }
 
         return config
